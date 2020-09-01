@@ -15,9 +15,9 @@ stages:
   # Run tests on non-forked PR and main builds
   if: fork = false
 - name: snapshot release
-  if: fork = false
+  if: fork = false AND type = push AND (branch = main OR branch =~ ^maint-3 OR env(RUNDECK_RELEASE) IS present) AND tag IS blank
 - name: tag release
-  if: fork = false
+  if: fork = false AND type = push AND tag =~ ^v
 - name: fork
   if: fork = true
 
@@ -64,34 +64,8 @@ jobs:
     # Trigger rundeck/testdeck build
     - script_block 'travis-trigger.testdeck' 'trigger_travis_build "${TRAVIS_OSS_TOKEN}" org rundeck testdeck ${RUNDECK_BRANCH} || true'
 
-  - arch: arm64
-    stage: build
-    script:
-    # Build artifacts: jars, wars, and docker images
-    - script_block 'build' 'bash scripts/travis-build.sh build'
-    - script_block 'build.docker.rdtest' build_rdtest
-    # Copy artifacts and upload to s3
-    - mkdir -p artifacts/packaging
-    - mkdir -p artifacts/rundeckapp/build
-
-    # Publish official docker snapshot
-    - script_block 'docker.official' 'bash scripts/travis-build.sh buildDocker'
-
-    # Sync artifacts and trigger downstream snapshot builds if appropriate
-    - script_block 'sync-artifacts' 'copy_artifacts && sync_to_s3'
-    - script_block 'trigger.downstream' trigger_downstream_snapshots
-
-    # Trigger rundeck/testdeck build
-    - script_block 'travis-trigger.testdeck' 'trigger_travis_build "${TRAVIS_OSS_TOKEN}" org rundeck testdeck ${RUNDECK_BRANCH} || true'
   # Stage: test
   - stage: test
-    env: JOB='Test Grails'
-    script:
-    - script_block 'sync-artifacts' fetch_common_artifacts
-    - script_block 'grails-test' './gradlew -g gradle-cache --build-cache check'
-
-  - arch: arm64
-    stage: test
     env: JOB='Test Grails'
     script:
     - script_block 'sync-artifacts' fetch_common_artifacts
@@ -103,22 +77,11 @@ jobs:
     - script_block 'docker.pull' pull_rdtest
     - script_block 'api-test' 'DOCKER_COMPOSE_SPEC=docker-compose-api-mysql.yaml bash test/run-docker-api-tests.sh'
 
-  - arch: arm64
-    env: JOB='Docker API tests'
-    script:
-    - script_block 'sync-artifacts' fetch_common_artifacts
-    - script_block 'docker.pull' pull_rdtest
-    - script_block 'api-test' 'DOCKER_COMPOSE_SPEC=docker-compose-api-mysql.yaml bash test/run-docker-api-tests.sh'
   - env: JOB='Docker Tomcat 8 API tests'
     script:
     - script_block 'sync-artifacts' fetch_common_artifacts
     - script_block 'api-test' 'bash test/run-docker-tomcat-tests.sh'
 
-  - arch: arm64
-    env: JOB='Docker Tomcat 8 API tests'
-    script:
-    - script_block 'sync-artifacts' fetch_common_artifacts
-    - script_block 'api-test' 'bash test/run-docker-tomcat-tests.sh'
   - env: JOB='Docker Tomcat 9 API tests'
     script:
     - script_block 'sync-artifacts' fetch_common_artifacts
