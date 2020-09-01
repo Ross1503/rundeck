@@ -55,6 +55,7 @@ jobs:
     arch: arm64
     script:
     # Build artifacts: jars, wars, and docker images
+    - export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-arm64
     - script_block 'build' 'bash scripts/travis-build.sh build'
     - script_block 'build.docker.rdtest' build_rdtest
     # Copy artifacts and upload to s3
