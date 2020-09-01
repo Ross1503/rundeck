@@ -8,19 +8,6 @@ sudo: required
 services:
 - docker
 
-stages:
-- name: build
-  if: fork = false
-- name: test
-  # Run tests on non-forked PR and main builds
-  if: fork = false
-- name: snapshot release
-  if: fork = false AND type = push AND (branch = main OR branch =~ ^maint-3 OR env(RUNDECK_RELEASE) IS present) AND tag IS blank
-- name: tag release
-  if: fork = false AND type = push AND tag =~ ^v
-- name: fork
-  if: fork = true
-
 before_cache:
 - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
