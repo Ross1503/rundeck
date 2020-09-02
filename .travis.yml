@@ -56,8 +56,8 @@ jobs:
     script:
     # Build artifacts: jars, wars, and docker images
     - ls /usr/lib/jvm/
-    - ls /usr/lib/jvm/java-8-openjdk-arm64/lib/
-    - ls /usr/lib/jvm/java-8-openjdk-arm64/bin/
+    - ls /usr/lib/jvm/java-1.8.0-openjdk-arm64/lib/
+    - ls /usr/lib/jvm/java-1.8.0-openjdk-arm64/bin/
     - export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-arm64
     - export PATH=$PATH:$JAVA_HOME/lib:$JAVA_HOME/bin
     - script_block 'build' 'bash scripts/travis-build.sh build'
